@@ -1,0 +1,12 @@
+section data
+    num byte 1
+    msg string "Hello"
+
+section text
+
+global _start
+
+_start:
+    move reg_A_64, reg_C_64
+    add reg_A_64, num
+    return
