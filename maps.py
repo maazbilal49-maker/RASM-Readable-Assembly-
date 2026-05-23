@@ -8,6 +8,7 @@ instructions = {
     'sub': ('sub', 2),
     'mult': ('mul', 2),
     'div': ('div', 1),
+    'increment': ('inc', 1),
     'xor': ('xor', 2),
     'or': ('or', 2),
     'and': ('and', 2),
@@ -92,7 +93,8 @@ keywords = {
     'double_word': 'DWORD',
     'quad_word': 'QWORD',
     'byte': 'byte',
-    'ptr': 'ptr'
+    'ptr': 'ptr',
+    'strlen': '$ -'
 }
 
 data_types = {

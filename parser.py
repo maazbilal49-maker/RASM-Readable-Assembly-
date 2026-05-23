@@ -3,6 +3,14 @@ import os
 
 avoid = [',', '[', ']', '{', '}', '(', ')', '+', '-']
 
+while_map = {
+    '>': 'jle',
+    '<': 'jge',
+    '>=': 'jl',
+    '<=': 'jg',
+    '==': 'jne'
+}
+
 user_defined = []
 data_symbols = []
 external_symbols = []
@@ -28,6 +36,7 @@ def compile_lines(lines):
             x = 0
             while x < len(tokens):
                 token = tokens[x]
+                print(token)
                 if x == 0 and token == "section":
                     if tokens[x+1] == "data":
                         current_section = "data"
@@ -104,8 +113,97 @@ mov rbx, {start}
                         x = len(tokens)
                         i = j + 1
                         break
+                    elif token == "#macro": #macro [name] [param number]
+                        macro_name = tokens[x+1]
+                        param_num = tokens[x+2]
+                        local_user_defined.append(macro_name)
+                        body = []
 
-                    elif token.isdigit():
+                        j = i + 1
+                        while j < len(lines):
+                            next_line = lines[j].strip()
+                            if next_line.strip().replace('\t', '') == "#endmac":
+                                break
+                            body.append(next_line)
+                            j += 1
+                        
+                        body_code = compile_lines(body)
+                        body_intended = "\n".join(
+                            "    " + line if line.strip() else line
+                            for line in body_code.splitlines()
+                        )
+
+                        output +=f"""
+%macro {macro_name} {param_num}
+{body_intended}
+%endmacro
+"""
+                        x = len(tokens)
+                        i = j + 1
+                        break
+                        
+                    elif token == "while": #while [reg] [sign] [num]
+                        loop_counter += 1
+                        reg_name = tokens[x+1]
+                        sign = tokens[x+2]
+                        num = tokens[x+3]
+
+                        if sign not in while_map:
+                            raise Exception(f"Invalid condition sign for while loop.")
+                        body = []
+                        j = i + 1
+
+                        while j < len(lines):
+                            next_line = lines[j].strip()
+                            if next_line.strip().replace('\t', '') == "endwhile":
+                                break
+                            body.append(next_line)
+                            j += 1
+                        body_code = compile_lines(body)
+                        body_intended = "\n".join(
+                            "    " + line if line.strip() else line
+                            for line in body_code.splitlines()
+                        )
+
+                        output += f"""
+.loop_{loop_counter}:
+    cmp {registers[reg_name]}, {num}
+    {while_map[sign]} .loop_{loop_counter}_end
+{body_intended}
+.loop_{loop_counter}_end:
+"""
+                        x = len(tokens)
+                        i = j + 1
+                        break
+                    elif token == "#const": #const [name] [val]
+                        var_name = tokens[x+1]
+                        local_user_defined.append(var_name)
+                        if tokens[x+2] == "strlen":
+                            target = tokens[x+3]
+                            output += f"{var_name} equ $ - {target}"
+                        else:
+                            rest = " ".join(tokens[x+2:])
+                            output += f"{var_name} equ {rest}"
+                        break
+                    
+                    elif token == "#define":
+                        var_name = tokens[x+1]
+                        val = tokens[x+2]
+
+                        local_user_defined.append(var_name)
+
+                        output += f"%define {var_name} {val}"
+                        break
+                    elif token == "#assign":
+                        var_name = tokens[x+1]
+                        val = tokens[x+2]
+
+                        local_user_defined.append(var_name)
+
+                        output += f"%assign {var_name} {val}"
+                        break
+
+                    elif token.isdigit() or (token.startswith("%") and token[1:].isdigit()):
                         output += token + " "
                     else:
                         if token.endswith(":") or token in local_user_defined or token in avoid or token in local_data_symbols or token in external_symbols:
