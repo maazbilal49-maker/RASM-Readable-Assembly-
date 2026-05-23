@@ -1,6 +1,5 @@
 section data
-    num byte 1
-    msg string "Hello"
+msg string "hello world"
 
 section text
 
@@ -8,5 +7,9 @@ global _start
 
 _start:
     move reg_A_64, reg_C_64
-    add reg_A_64, num
+    for 0 10 1
+        add reg_A_64, 3
+        compare reg_A_64, 5
+    endfor
+
     return
