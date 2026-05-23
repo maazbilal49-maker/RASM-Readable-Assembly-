@@ -1,4 +1,5 @@
 from maps import instructions, registers, keywords, data_types
+import os
 
 avoid = [',', '[', ']', '{', '}', '(', ')', '+', '-']
 
@@ -103,8 +104,8 @@ def parse_file(filename):
 
         output = output.replace('[ ', '[').replace(' ]', ']').replace('( ', '(').replace(' )', ')').replace('{ ', '{').replace(' }', '}')
         output += '\n'
-    
-    with open("output.asm", 'w') as f:
-        f.write(output)
 
-parse_file("test.rasm")
+    name = os.path.splitext(filename)[0]
+    
+    with open(f"{name}.asm", 'w') as f:
+        f.write(output)
