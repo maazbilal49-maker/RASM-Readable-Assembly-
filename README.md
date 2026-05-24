@@ -55,7 +55,7 @@ e.g:
     msg string "Hello, world!"
 ```
 
-## Example:
+### Example:
 ```asm
 section data
     num byte 1
@@ -71,7 +71,7 @@ _start:
     return
 ```
 
-**Output**:
+**Output:**
 ```asm
 section .data
 num db 1
@@ -87,7 +87,57 @@ add rax, num
 ret
 ```
 
+## For loops
+for loops follow this format:
+
+for [start] [end] [step]
+
+for loops are just an abstraction layer to no write multiple labels.
+
+### Example
+```asm
+for 0 10 1
+    increment reg_A_64
+endfor
+```
+**Output:**
+```
+.loop_1:
+    cmp rbx, 10
+    jge .loop_1_end
+    inc rax
+    add rbx, 1
+    jmp .loop_1
+
+.loop_1_end:
+    pop rbx
+```
+for loops need improvement though
+
+## While loops
+while loops follow this format:
+
+while [reg] [sign] [num]
+
+### Example
+```asm
+while reg_A_64 < 10
+        increment reg_A_64
+endwhile
+```
+**Output:**
+```asm
+.loop_1:
+    cmp rax, 10
+    jge .loop_1_end
+    inc rax
+.loop_1_end:
+```
+
 ## Goals
 - Improve readability of assembly for beginners
 - Provie a simple compilation pipeline in Python
 - Serve as a learning project for compilers and low-level programming
+
+## Warning!!
+Do NOT compile the output asm example code, this is only used to review syntax.
