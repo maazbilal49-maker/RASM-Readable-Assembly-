@@ -4,15 +4,16 @@
 
 
 section data
-msg string "hello world"
+num string "Hello, World!"
+#const length strlen num
 
 section text
 
-#const SYS_EXIT strlen msg
 global _start
 
 _start:
     move reg_A_64, reg_C_64
+    load_effective_address reg_C_64, [num]
     while reg_A_64 < 10
         increment reg_A_64
     endwhile

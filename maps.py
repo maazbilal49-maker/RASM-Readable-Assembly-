@@ -2,6 +2,7 @@ instructions = {
     #move instructions
     "move": ('mov', 2),
     'move_zero': ('movzq', 2),
+    'load_effective_address': ('lea', 2),
 
     #arithmatic instructions
     'add': ('add', 2),
@@ -27,6 +28,7 @@ instructions = {
     'jump_if_less': ('jl', 1),
     'jump_if_less_equal': ('jle', 1),
     'jump_if_equal':('je', 1),
+    'jump_if_not_equal': ('jne', 1),
     'jump_if_zero': ('jz', 1),
     "call": ("call", 1),
     'return': ('ret', 0)
@@ -94,7 +96,6 @@ keywords = {
     'quad_word': 'QWORD',
     'byte': 'byte',
     'ptr': 'ptr',
-    'strlen': '$ -'
 }
 
 data_types = {

@@ -17,7 +17,7 @@ external_symbols = []
 
 def compile_lines(lines):
     local_user_defined = user_defined.copy()
-    local_data_symbols = data_symbols.copy()
+    local_data_symbols = {}
     output = ""
     current_section = "text"
     loop_counter = 0
@@ -170,16 +170,34 @@ mov rbx, {start}
     cmp {registers[reg_name]}, {num}
     {while_map[sign]} .loop_{loop_counter}_end
 {body_intended}
+    jmp .loop_{loop_counter}
 .loop_{loop_counter}_end:
 """
                         x = len(tokens)
                         i = j + 1
                         break
-                    elif token == "#const": #const [name] [val]
+                    
+
+                    elif token.isdigit() or (token.startswith("%") and token[1:].isdigit()):
+                        output += token + " "
+                    else:
+                        if token.endswith(":") or token in local_user_defined or token in avoid or token in local_data_symbols or token in external_symbols:
+                            output += token + ' ' 
+                            if token.endswith(":"):
+                                if token[:-1] in instructions or token[:-1] in external_symbols:
+                                    raise Exception(f"{token[:-1]} is a reserved instruction name.")
+                                local_user_defined.append(token[:-1])
+                        else:
+                            raise Exception(f"Unknown keyword: {token}")
+                    x += 1
+                elif current_section == "data":
+                    if token == "#const": #const [name] [val]
                         var_name = tokens[x+1]
                         local_user_defined.append(var_name)
                         if tokens[x+2] == "strlen":
                             target = tokens[x+3]
+                            if local_data_symbols[target] != "string":
+                                raise Exception(f"'strlen' expects type 'string' but got type '{local_data_symbols[target]}'")
                             output += f"{var_name} equ $ - {target}"
                         else:
                             rest = " ".join(tokens[x+2:])
@@ -202,20 +220,6 @@ mov rbx, {start}
 
                         output += f"%assign {var_name} {val}"
                         break
-
-                    elif token.isdigit() or (token.startswith("%") and token[1:].isdigit()):
-                        output += token + " "
-                    else:
-                        if token.endswith(":") or token in local_user_defined or token in avoid or token in local_data_symbols or token in external_symbols:
-                            output += token + ' ' 
-                            if token.endswith(":"):
-                                if token[:-1] in instructions or token[:-1] in external_symbols:
-                                    raise Exception(f"{token[:-1]} is a reserved instruction name.")
-                                local_user_defined.append(token[:-1])
-                        else:
-                            raise Exception(f"Unknown keyword: {token}")
-                    x += 1
-                elif current_section == "data":
                     x += 1
 
                     parts = line.split()
@@ -226,10 +230,10 @@ mov rbx, {start}
                     var_name = parts[0]
                     data_type = parts[1]
 
-                    local_data_symbols.append(var_name)
-
                     if data_type not in data_types and data_type != "string":
                         raise Exception(f"Unknown data type: {data_type}")
+                    
+                    local_data_symbols[var_name] = data_type
                     
                     if data_type == "string":
                         raw = " ".join(parts[2:]).strip()
